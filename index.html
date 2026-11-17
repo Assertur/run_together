@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Tri Express</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="game"></canvas>
+
+      <!-- HUD en jeu -->
+      <div id="hud" class="hidden">
+        <div class="hud-top">
+          <div class="panel stat">
+            <span class="label">Niveau</span>
+            <span class="value" id="level-num">1/7</span>
+            <span class="sub" id="level-name"></span>
+          </div>
+          <div class="panel item-card" id="item-card">
+            <span class="item-icon" id="item-icon">🥫</span>
+            <div>
+              <span class="label">À trier</span>
+              <span class="item-name" id="item-name">—</span>
+            </div>
+          </div>
+          <div class="panel stat right">
+            <span class="label">Score</span>
+            <span class="value" id="score">0</span>
+            <span class="sub combo" id="combo"></span>
+          </div>
+        </div>
+
+        <div class="hud-side">
+          <div class="panel mini" id="clock"><span class="label">Temps</span><span class="value" id="elapsed">0:00</span></div>
+          <div class="panel mini" id="wind"><span class="label">Vent</span><span class="value" id="wind-value">—</span></div>
+        </div>
+
+        <div class="throw-row">
+          <div class="throws" id="throws"></div>
+          <div class="timer"><div class="timer-fill" id="timer-fill"></div><span id="timer-text">8.0 s</span></div>
+        </div>
+
+        <div class="power">
+          <div class="power-track"><div class="power-fill" id="power-fill"></div></div>
+          <span class="label">Puissance</span>
+        </div>
+
+        <div class="hint" id="hint">🖱️ Visez avec la souris · maintenez le clic pour charger · relâchez pour lancer</div>
+        <button class="mute" id="mute" title="Couper le son">🔊</button>
+      </div>
+
+      <div id="popups"></div>
+      <div id="banner" class="hidden"></div>
+
+      <!-- Écran titre -->
+      <div class="screen" id="screen-title">
+        <div class="card">
+          <h1 class="logo">TRI <span>EXPRESS</span></h1>
+          <p class="tagline">Lancez les déchets du bureau dans la bonne poubelle !</p>
+          <div class="legend" id="legend"></div>
+          <ul class="rules">
+            <li><b>Viser</b> : déplacez la souris (haut de l'écran = tir en cloche)</li>
+            <li><b>Puissance</b> : maintenez le clic, la jauge monte et descend</li>
+            <li><b>Lancer</b> : relâchez au bon moment !</li>
+            <li>7 niveaux · 5 objets chacun · le chrono passe de 8 s à 3 s par lancer</li>
+          </ul>
+          <div class="scoring">
+            <span class="chip good">Bonne poubelle +100</span>
+            <span class="chip good">Bonus distance & swish</span>
+            <span class="chip good">Combo jusqu'à ×3</span>
+            <span class="chip bad">Mauvaise poubelle −50</span>
+            <span class="chip bad">Raté −20</span>
+          </div>
+          <button class="btn" id="play">Jouer ▶</button>
+          <p class="best" id="best-title"></p>
+        </div>
+      </div>
+
+      <!-- Récap entre deux niveaux -->
+      <div class="screen hidden" id="screen-recap">
+        <div class="card small">
+          <h2 id="recap-title">Niveau 1 terminé</h2>
+          <div class="recap-stats">
+            <div><span class="big good" id="recap-hits">0</span><span>bons tris</span></div>
+            <div><span class="big bad" id="recap-wrong">0</span><span>erreurs</span></div>
+            <div><span class="big meh" id="recap-miss">0</span><span>ratés</span></div>
+          </div>
+          <p class="recap-score">Score du niveau : <b id="recap-score">0</b></p>
+          <p class="recap-next" id="recap-next"></p>
+          <div class="recap-bar"><div id="recap-bar-fill"></div></div>
+        </div>
+      </div>
+
+      <!-- Fin de partie -->
+      <div class="screen hidden" id="screen-end">
+        <div class="card">
+          <h2>Journée terminée !</h2>
+          <table class="scores">
+            <thead>
+              <tr><th>Niveau</th><th>✅</th><th>❌</th><th>💨</th><th>Points</th></tr>
+            </thead>
+            <tbody id="end-rows"></tbody>
+            <tfoot>
+              <tr><td colspan="4">Score total</td><td id="end-total">0</td></tr>
+            </tfoot>
+          </table>
+          <div class="end-extra">
+            <span class="chip">🎯 Précision : <b id="end-accuracy">0 %</b></span>
+            <span class="chip">🔥 Meilleur combo : <b id="end-combo">0</b></span>
+            <span class="chip">⏱️ Temps : <b id="end-time">0:00</b></span>
+          </div>
+          <p class="best" id="end-best"></p>
+          <button class="btn" id="replay">Rejouer ↻</button>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
