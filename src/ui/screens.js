@@ -9,10 +9,32 @@ const show = (id) => {
   ['screen-title', 'screen-recap', 'screen-end'].forEach((s) => $(s).classList.toggle('hidden', s !== id));
 };
 
+/** Tableau du classement (noms insérés en texte, jamais en HTML). */
+const renderRanking = (rankings, player) => {
+  const body = $('ranking-rows');
+  body.replaceChildren();
+  const current = player.toLocaleLowerCase('fr');
+  const meIndex = rankings.findIndex((p) => p.name.toLocaleLowerCase('fr') === current);
+  // Top 10, plus la ligne du joueur s'il est plus loin
+  const rows = rankings.map((p, i) => ({ ...p, rank: i + 1 })).filter((p, i) => i < 10 || i === meIndex);
+  rows.forEach((p, i) => {
+    const tr = document.createElement('tr');
+    tr.style.setProperty('--d', `${0.3 + i * 0.06}s`);
+    if (p.rank - 1 === meIndex) tr.className = 'me';
+    const medal = ['🥇', '🥈', '🥉'][p.rank - 1] ?? `${p.rank}`;
+    [medal, p.name, p.games, p.best].forEach((value) => {
+      const td = document.createElement('td');
+      td.textContent = value;
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+};
+
 export const screens = {
   hideAll: () => show(null),
 
-  title(best) {
+  title(ranking) {
     const legend = $('legend');
     legend.innerHTML = Object.values(BIN_TYPES)
       .map(
@@ -20,7 +42,15 @@ export const screens = {
           `<div class="bin-chip" style="--c:${hex(b.color)}"><span class="ico">${b.icon}</span><b>${b.label}</b><small>${b.hint}</small></div>`,
       )
       .join('');
-    $('best-title').textContent = best ? `🏆 Meilleur score : ${best}` : '';
+    // Podium des 3 meilleurs joueurs de cet appareil
+    const podium = $('title-ranking');
+    podium.replaceChildren();
+    ranking.slice(0, 3).forEach((p, i) => {
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = `${['🥇', '🥈', '🥉'][i]} ${p.name} · ${p.best}`;
+      podium.appendChild(chip);
+    });
     show('screen-title');
   },
 
@@ -40,7 +70,9 @@ export const screens = {
     show('screen-recap');
   },
 
-  end({ levels, total, accuracy, bestCombo, elapsed, best, isRecord }) {
+  end({ levels, total, accuracy, bestCombo, elapsed, best, isRecord, player, rankings }) {
+    $('end-title').textContent = `Bravo ${player}, gymnase rangé !`;
+    renderRanking(rankings, player);
     $('end-rows').innerHTML = levels
       .map(
         (l, i) =>
@@ -50,7 +82,7 @@ export const screens = {
     $('end-accuracy').textContent = `${accuracy} %`;
     $('end-combo').textContent = bestCombo;
     $('end-time').textContent = formatTime(elapsed);
-    $('end-best').textContent = isRecord ? '🎉 Nouveau record !' : best != null ? `🏆 Meilleur score : ${best}` : '';
+    $('end-best').textContent = isRecord ? `🎉 Nouveau record pour ${player} !` : `🏆 Ton record : ${best}`;
     show('screen-end');
 
     // Le total « compte » jusqu'à la somme des niveaux

@@ -81,11 +81,11 @@ export const audio = {
   onLevelEnd() {
     crowd.applause(0.5, 1.6);
   },
-  onGameEnd(isRecord) {
+  onGameEnd(isRecord, player) {
     music.stop();
     music.fanfare();
     crowd.applause(1, 4);
     crowd.cheer(1);
-    speak(isRecord ? 'Nouveau record ! Bravo !' : 'Bravo, le gymnase est rangé !', { force: true });
+    speak(isRecord ? `Nouveau record, bravo ${player} !` : `Bravo ${player}, le gymnase est rangé !`, { force: true });
   },
 };

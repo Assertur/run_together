@@ -18,6 +18,10 @@ export const hud = {
     $('level-name').textContent = name;
   },
 
+  setPlayer(name) {
+    $('player-label').textContent = name;
+  },
+
   setScore(score, streak, mult) {
     $('score').textContent = score;
     $('combo').textContent = streak >= 2 ? `Combo ×${mult}` : '';

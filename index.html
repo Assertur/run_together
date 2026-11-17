@@ -28,7 +28,7 @@
             </div>
           </div>
           <div class="panel stat right">
-            <span class="label">Score</span>
+            <span class="label">Score · <span id="player-label"></span></span>
             <span class="value" id="score">0</span>
             <span class="sub combo" id="combo"></span>
           </div>
@@ -77,8 +77,12 @@
             <span class="chip bad">Mauvais bac −50</span>
             <span class="chip bad">Raté −20</span>
           </div>
+          <div class="name-row">
+            <label for="player-name">Ton nom</label>
+            <input id="player-name" type="text" maxlength="16" autocomplete="nickname" placeholder="Ex. : Léa" spellcheck="false" />
+          </div>
           <button class="btn" id="play">Jouer ▶</button>
-          <p class="best" id="best-title"></p>
+          <div class="podium" id="title-ranking"></div>
         </div>
       </div>
 
@@ -99,8 +103,11 @@
 
       <!-- Fin de partie -->
       <div class="screen hidden" id="screen-end">
-        <div class="card">
-          <h2>Gymnase rangé !</h2>
+        <div class="card wide">
+          <h2 id="end-title">Gymnase rangé !</h2>
+          <div class="end-grid">
+          <div>
+          <h3>Ta partie</h3>
           <table class="scores">
             <thead>
               <tr><th>Niveau</th><th>✅</th><th>❌</th><th>💨</th><th>Points</th></tr>
@@ -115,8 +122,22 @@
             <span class="chip">🔥 Meilleur combo : <b id="end-combo">0</b></span>
             <span class="chip">⏱️ Temps : <b id="end-time">0:00</b></span>
           </div>
+          </div>
+          <div>
+          <h3>Classement des joueurs</h3>
+          <table class="scores ranking">
+            <thead>
+              <tr><th>#</th><th>Joueur</th><th>Parties</th><th>Record</th></tr>
+            </thead>
+            <tbody id="ranking-rows"></tbody>
+          </table>
           <p class="best" id="end-best"></p>
-          <button class="btn" id="replay">Rejouer ↻</button>
+          </div>
+          </div>
+          <div class="end-buttons">
+            <button class="btn" id="replay">Rejouer ↻</button>
+            <button class="btn secondary" id="change-player">Changer de joueur</button>
+          </div>
         </div>
       </div>
     </div>

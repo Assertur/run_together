@@ -37,6 +37,13 @@ Le jeu marche aussi au doigt sur mobile.
 - La difficulté monte au fil des niveaux : bacs plus loin, trajectoire raccourcie puis masquée, obstacles (plinth, tapis, haie), bacs sur roulettes, entraîneur qui traverse le gymnase.
 - À la fin, un tableau donne le score de chaque niveau et le score total, qui est leur somme. Le meilleur score est enregistré dans le navigateur.
 
+## Joueurs et classement
+
+- Avant de jouer, chaque joueur tape son nom sur l'écran titre. Le dernier nom utilisé est prérempli, et la touche Entrée lance la partie.
+- L'écran final montre le détail de la partie et le classement des joueurs : le record de chacun et son nombre de parties, avec le joueur actuel surligné.
+- « Changer de joueur » ramène à l'écran titre pour entrer un autre nom. L'écran titre affiche le podium des 3 meilleurs.
+- Les scores sont gardés dans le navigateur, sur l'appareil où l'on joue. Ils ne sont pas partagés entre appareils.
+
 ## Sons
 
 Tout est généré en direct par le navigateur, il n'y a aucun fichier audio :

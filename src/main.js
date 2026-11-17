@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import './style.css';
 import { ITEMS_PER_LEVEL, LEVELS } from './config/levels.js';
 import { audio } from './audio/index.js';
+import { bestOf, cleanName, lastName, rankings, recordGame, rememberName } from './game/leaderboard.js';
 import { LevelManager } from './game/levelManager.js';
 import { applyAssist, stepBody } from './game/physics.js';
 import { ScoreKeeper, comboMultiplier } from './game/scoring.js';
@@ -95,22 +96,6 @@ const levels = new LevelManager(scene);
 const score = new ScoreKeeper();
 const thrower = new Thrower(scene, canvas, camera);
 
-const BEST_KEY = 'gym-express-best';
-const loadBest = () => {
-  try {
-    const v = localStorage.getItem(BEST_KEY);
-    return v == null ? null : Number(v);
-  } catch {
-    return null;
-  }
-};
-const saveBest = (v) => {
-  try {
-    localStorage.setItem(BEST_KEY, String(v));
-  } catch {
-    /* stockage indisponible : on ignore */
-  }
-};
 
 const game = {
   state: 'title', // title | intro | aiming | flying | result | recap | end
@@ -141,7 +126,13 @@ const clearLeftovers = () => {
   game.leftovers = [];
 };
 
+const nameInput = document.getElementById('player-name');
+
 const startGame = () => {
+  game.player = cleanName(nameInput.value);
+  nameInput.value = game.player;
+  rememberName(game.player);
+  hud.setPlayer(game.player);
   audio.onStart();
   score.reset();
   game.levelIndex = 0;
@@ -296,18 +287,20 @@ const endGame = () => {
   thrower.setEnabled(false);
   hud.show(false);
   const total = score.total;
-  const prev = loadBest();
-  const isRecord = prev == null || total > prev;
-  if (isRecord) saveBest(total);
-  audio.onGameEnd(isRecord && prev != null);
+  const prev = bestOf(game.player);
+  const isRecord = prev != null && total > prev;
+  recordGame({ name: game.player, total, accuracy: score.accuracy });
+  audio.onGameEnd(isRecord, game.player);
   screens.end({
     levels: score.levels,
     total,
     accuracy: score.accuracy,
     bestCombo: score.bestCombo,
     elapsed: game.elapsed,
-    best: isRecord ? total : prev,
-    isRecord: isRecord && prev != null,
+    best: prev == null ? total : Math.max(prev, total),
+    isRecord,
+    player: game.player,
+    rankings: rankings(),
   });
 };
 
@@ -435,6 +428,16 @@ const tick = () => {
 // --- Boutons -------------------------------------------------------------------------
 document.getElementById('play').addEventListener('click', startGame);
 document.getElementById('replay').addEventListener('click', startGame);
+document.getElementById('change-player').addEventListener('click', () => {
+  hud.show(false);
+  game.state = 'title';
+  screens.title(rankings());
+  nameInput.focus();
+  nameInput.select();
+});
+nameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') startGame();
+});
 const muteButton = document.getElementById('mute');
 const musicButton = document.getElementById('music');
 const refreshSoundButtons = () => {
@@ -457,5 +460,6 @@ document.getElementById('screen-recap').addEventListener('click', () => {
 
 // Aperçu : bacs du niveau 1 visibles derrière l'écran titre
 levels.load(LEVELS[0]);
-screens.title(loadBest());
+nameInput.value = lastName();
+screens.title(rankings());
 tick();
