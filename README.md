@@ -23,7 +23,14 @@ Le jeu marche aussi au doigt sur mobile.
 
 - 7 niveaux de 5 objets, soit environ 3 minutes de jeu. Les niveaux s'enchaînent quel que soit le score.
 - Le temps par lancer passe de 8 s au niveau 1 à 3 s au niveau 7. Si le chrono tombe à zéro, le lancer compte comme raté.
-- Bon bac : +100, plus un bonus distance (jusqu'à +50) et un bonus « swish » (+25) si l'objet ne touche pas le rebord. Les réussites consécutives donnent un combo jusqu'à ×3.
+- Bon bac : +100, plus des bonus selon la difficulté du lancer :
+  - distance : jusqu'à +100 ;
+  - bac sur roulettes : +40 à +80 selon sa vitesse ;
+  - obstacle (ou entraîneur) entre le joueur et le bac : +40 ;
+  - trajectoire raccourcie : +15, masquée : +30 ;
+  - « swish », sans toucher le rebord : +25.
+
+  Les réussites consécutives multiplient le tout (combo jusqu'à ×3).
 - Mauvais bac : −50. Raté : −20.
 - Bacs : basket (orange), foot (vert), tennis (jaune), volley (bleu), rugby (rouge, à partir du niveau 5).
 - La physique aide le joueur : une balle qui redescend près d'un bac est attirée vers son centre, et les balles rebondissent peu. Il n'y a pas de vent.
@@ -38,7 +45,7 @@ Tout est généré en direct par le navigateur, il n'y a aucun fichier audio :
 - l'ambiance du gymnase : murmure de la foule, ballons qui rebondissent au loin, crissements de baskets ;
 - des applaudissements et des cris de joie quand l'objet est bien rangé (plus forts pour un swish ou une série), et un « ooooh » déçu en cas d'erreur ;
 - un coup de sifflet au début de chaque niveau, une fanfare à la fin de la partie ;
-- les encouragements de l'entraîneur, prononcés en français par la synthèse vocale du navigateur et affichés dans une bulle.
+- les encouragements de l'entraîneur, prononcés en français par la synthèse vocale du navigateur et affichés dans une bulle. Il ne commente pas tous les lancers, seulement de temps en temps et toujours les belles séries, et évite de répéter les mêmes phrases.
 
 En jeu, 🔊 coupe tout le son (voix comprise) et 🎵 coupe seulement la musique. Ces réglages sont gardés d'une partie à l'autre. La voix dépend de l'appareil et du navigateur.
 

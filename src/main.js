@@ -209,8 +209,34 @@ const launchBody = (velocity, dropped = false) => {
 
 thrower.onRelease = (velocity) => {
   if (game.state !== 'aiming') return;
-  audio.onThrow();
   launchBody(velocity);
+};
+
+/** Un obstacle (ou l'entraîneur) se trouve-t-il entre le joueur et le bac, vu du dessus ? */
+const obstacleBetween = (from, to) => {
+  const boxes = [...levels.colliders];
+  if (levels.coach) boxes.push(levels.coach.collider);
+  return boxes.some((b) => {
+    // segment [from, to] dans le plan XZ contre le rectangle de la boîte (méthode des dalles)
+    let t0 = 0;
+    let t1 = 1;
+    for (const axis of ['x', 'z']) {
+      const d = to[axis] - from[axis];
+      const min = b.min[axis] - 0.1;
+      const max = b.max[axis] + 0.1;
+      if (Math.abs(d) < 1e-6) {
+        if (from[axis] < min || from[axis] > max) return false;
+        continue;
+      }
+      let ta = (min - from[axis]) / d;
+      let tb = (max - from[axis]) / d;
+      if (ta > tb) [ta, tb] = [tb, ta];
+      t0 = Math.max(t0, ta);
+      t1 = Math.min(t1, tb);
+      if (t0 > t1) return false;
+    }
+    return true;
+  });
 };
 
 const resolveThrow = (kind, bin = null) => {
@@ -218,12 +244,20 @@ const resolveThrow = (kind, bin = null) => {
   const screen = toScreen(bin ? bin.position.clone().setY(bin.top + 0.6) : pos.clone().setY(pos.y + 0.4));
   if (kind === 'hit') {
     const distance = Math.hypot(bin.position.x - HAND.x, bin.position.z - HAND.z);
-    const r = score.correct({ distance, swish: !game.body.touchedRim });
-    const sub = [r.swish ? 'Swish ! +25' : 'Bien rangé !', r.mult > 1 ? `Combo ×${r.mult}` : ''].filter(Boolean).join(' · ');
+    const r = score.correct({
+      distance,
+      swish: !game.body.touchedRim,
+      moving: bin.move,
+      obstacle: obstacleBetween(HAND, bin.position),
+      trajectory: level().trajectory,
+    });
+    const details = r.bonuses.slice(0, 3).map((b) => `${b.label} +${b.points}`);
+    if (r.mult > 1) details.push(`Combo ×${r.mult}`);
+    const sub = details.length ? details.join(' · ') : 'Bien rangé !';
     hud.popup(`+${r.points}`, 'good', screen.x, screen.y, sub);
     spawnConfetti(bin.position.clone().setY(bin.top + 0.2), bin.info.color);
     bin.shake = 1;
-    audio.onHit({ swish: r.swish, streak: r.streak });
+    audio.onHit({ swish: r.swish, streak: r.streak, hard: r.bonuses.reduce((sum, b) => sum + b.points, 0) >= 100 });
     game.results.push('hit');
   } else if (kind === 'wrong') {
     const r = score.wrong();

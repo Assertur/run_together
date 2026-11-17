@@ -1,7 +1,11 @@
 // Système de points : réussite, mauvais bac, raté, combo. Un score par niveau.
 export const POINTS = {
   correct: 100,
-  maxDistanceBonus: 50,
+  maxDistanceBonus: 100,
+  maxMovingBonus: 80,
+  obstacle: 40,
+  hiddenTrajectory: 30,
+  shortTrajectory: 15,
   swish: 25,
   wrongBin: -50,
   miss: -20,
@@ -11,6 +15,23 @@ export const comboMultiplier = (streak) => Math.min(3, 1 + 0.5 * Math.max(0, str
 
 export const distanceBonus = (distance) =>
   Math.round(Math.max(0, Math.min(1, (distance - 4) / 9)) * POINTS.maxDistanceBonus);
+
+/** Bonus de difficulté du lancer, avec un libellé court pour chacun. */
+export const difficultyBonuses = ({ distance, moving, obstacle, trajectory, swish }) => {
+  const list = [];
+  const far = distanceBonus(distance);
+  if (far > 0) list.push({ label: 'Loin', points: far });
+  if (moving) {
+    // moving = { amp, speed } du bac : plus il va vite et loin, plus ça rapporte
+    const pts = Math.min(POINTS.maxMovingBonus, Math.round(40 + moving.amp * moving.speed * 30));
+    list.push({ label: 'Bac mobile', points: pts });
+  }
+  if (obstacle) list.push({ label: 'Par-dessus l\'obstacle', points: POINTS.obstacle });
+  if (trajectory === 'none') list.push({ label: 'À l\'aveugle', points: POINTS.hiddenTrajectory });
+  if (trajectory === 'short') list.push({ label: 'Sans guide', points: POINTS.shortTrajectory });
+  if (swish) list.push({ label: 'Swish', points: POINTS.swish });
+  return list;
+};
 
 export class ScoreKeeper {
   constructor() {
@@ -28,16 +49,17 @@ export class ScoreKeeper {
     this.current = this.levels[index];
   }
 
-  /** Bon bac. Renvoie le détail des points gagnés. */
-  correct({ distance, swish }) {
+  /** Bon bac. Plus le lancer est difficile, plus il rapporte. Renvoie le détail des points. */
+  correct(shot) {
     this.streak += 1;
     this.bestCombo = Math.max(this.bestCombo, this.streak);
     const mult = comboMultiplier(this.streak);
-    const base = POINTS.correct + distanceBonus(distance) + (swish ? POINTS.swish : 0);
+    const bonuses = difficultyBonuses(shot);
+    const base = POINTS.correct + bonuses.reduce((sum, b) => sum + b.points, 0);
     const points = Math.round(base * mult);
     this.current.score += points;
     this.current.hits += 1;
-    return { points, mult, swish, streak: this.streak };
+    return { points, mult, bonuses, swish: shot.swish, streak: this.streak };
   }
 
   wrong() {

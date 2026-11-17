@@ -11,6 +11,11 @@ const speak = (text, opts) => {
   say(text, opts);
 };
 
+// L'entraîneur ne commente pas tous les lancers : seulement de temps en temps.
+const maybeSpeak = (list, chance) => {
+  if (Math.random() < chance) speak(pick(list));
+};
+
 export const audio = {
   get muted() {
     return prefs.muted;
@@ -42,32 +47,33 @@ export const audio = {
     music.start(index);
     speak(`Niveau ${index + 1}, c'est parti !`, { force: true });
   },
-  onThrow() {
-    tone(320, 0.18, { type: 'triangle', slide: 300, volume: 0.07 });
-  },
-  onHit({ swish, streak }) {
+  onHit({ swish, streak, hard }) {
     tone(523, 0.12, { volume: 0.05 });
     tone(659, 0.12, { volume: 0.05, delay: 0.09 });
     tone(784, 0.2, { volume: 0.05, delay: 0.18 });
-    const big = swish || streak >= 3;
-    crowd.applause(big ? 0.8 : 0.45, big ? 2 : 1.3);
+    const big = swish || hard || streak >= 3;
+    crowd.applause(big ? 0.8 : 0.4, big ? 2 : 1.2);
     if (big) crowd.cheer(streak >= 5 ? 1 : 0.7);
-    speak(pick(streak >= 3 ? PHRASES.combo : swish ? PHRASES.swish : PHRASES.hit));
+    // Paliers de série (3, 5, 7…) toujours commentés, le reste de temps en temps
+    if (streak >= 3 && streak % 2 === 1) speak(pick(PHRASES.combo));
+    else if (hard) maybeSpeak(PHRASES.hard, 0.6);
+    else if (swish) maybeSpeak(PHRASES.swish, 0.5);
+    else maybeSpeak(PHRASES.hit, 0.3);
   },
   onWrong() {
     tone(300, 0.18, { type: 'sawtooth', volume: 0.04 });
     tone(200, 0.3, { type: 'sawtooth', volume: 0.04, delay: 0.15 });
     crowd.ooh(0.9);
-    speak(pick(PHRASES.wrong));
+    maybeSpeak(PHRASES.wrong, 0.5);
   },
   onMiss() {
     tone(220, 0.35, { type: 'triangle', slide: -150, volume: 0.06 });
-    crowd.ooh(0.6);
-    speak(pick(PHRASES.miss));
+    if (Math.random() < 0.5) crowd.ooh(0.6);
+    maybeSpeak(PHRASES.miss, 0.35);
   },
   onTimeout() {
     tone(220, 0.35, { type: 'triangle', slide: -150, volume: 0.06 });
-    speak(pick(PHRASES.timeout));
+    maybeSpeak(PHRASES.timeout, 0.6);
   },
   onTick() {
     tone(880, 0.04, { volume: 0.03 });
