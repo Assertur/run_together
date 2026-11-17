@@ -61,6 +61,13 @@ export const sphere = (radius, color, opts = {}) => {
   return place(new THREE.Mesh(geometries.get(key), material(color, opts)), opts);
 };
 
+/** Anneau fin (tore) : coutures et bandes des ballons. Dans le plan XY par défaut. */
+export const ring = (radius, tube, color, opts = {}) => {
+  const key = `torus|${radius}|${tube}`;
+  if (!geometries.has(key)) geometries.set(key, new THREE.TorusGeometry(radius, tube, 6, 28));
+  return place(new THREE.Mesh(geometries.get(key), material(color, opts)), { shadow: false, ...opts });
+};
+
 export const group = (...children) => {
   const g = new THREE.Group();
   children.forEach((c) => g.add(c));

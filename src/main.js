@@ -189,12 +189,11 @@ const nextItem = () => {
   game.state = 'aiming';
 };
 
-thrower.onRelease = (velocity) => {
-  if (game.state !== 'aiming') return;
-  sfx.throw();
+const launchBody = (velocity, dropped = false) => {
   game.body = {
     pos: HAND.clone(),
     vel: velocity,
+    dropped,
     radius: ITEM_RADIUS,
     bounce: game.item.bounce,
     touchedRim: false,
@@ -206,6 +205,12 @@ thrower.onRelease = (velocity) => {
   };
   hud.setPower(0);
   game.state = 'flying';
+};
+
+thrower.onRelease = (velocity) => {
+  if (game.state !== 'aiming') return;
+  sfx.throw();
+  launchBody(velocity);
 };
 
 const resolveThrow = (kind, bin = null) => {
@@ -229,8 +234,7 @@ const resolveThrow = (kind, bin = null) => {
   } else {
     const r = score.miss();
     const label = kind === 'timeout' ? 'Trop lent !' : 'Raté !';
-    const pt = kind === 'timeout' ? { x: window.innerWidth / 2, y: window.innerHeight * 0.45 } : screen;
-    hud.popup(`${r.points}`, 'meh', pt.x, pt.y, `${label} (${binName(game.item.bin)})`);
+    hud.popup(`${r.points}`, 'meh', screen.x, screen.y, `${label} (${binName(game.item.bin)})`);
     sfx.miss();
     game.results.push('miss');
   }
@@ -311,7 +315,7 @@ const updateFlight = (dt) => {
   body.restTime = body.pos.y < 0.6 && speed < 0.8 ? body.restTime + dt : 0;
   const outside =
     body.pos.y < -1 || body.pos.x < ROOM.minX - 1 || body.pos.x > ROOM.maxX + 1 || body.pos.z < ROOM.minZ - 1 || body.pos.z > 5;
-  if (body.restTime > 0.25 || body.flightTime > 4.5 || outside) resolveThrow('miss');
+  if (body.restTime > 0.25 || body.flightTime > 4.5 || outside) resolveThrow(body.dropped ? 'timeout' : 'miss');
 };
 
 // --- Boucle principale ------------------------------------------------------------
@@ -348,9 +352,9 @@ const tick = () => {
       if (game.throwTimeLeft <= 0) {
         if (thrower.charging) thrower.release();
         else {
+          // Trop tard : l'objet échappe des mains et tombe au sol devant le joueur
           thrower.setEnabled(false);
-          game.body = null;
-          resolveThrow('timeout');
+          launchBody(new THREE.Vector3((Math.random() - 0.5) * 0.4, 0.4, -2.4), true);
         }
       }
       break;
