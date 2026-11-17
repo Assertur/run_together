@@ -13,8 +13,8 @@ Ouvrez ensuite l'URL affichée (par défaut http://localhost:5173). `npm run bui
 
 ## Commandes
 
-- **Viser** : déplacez la souris. Plus le curseur est haut, plus le tir monte en cloche.
-- **Puissance** : maintenez le clic, la jauge monte et redescend.
+- **Viser** : pointez le bac avec la souris. Un repère et la trajectoire suivent le curseur.
+- **Puissance** : maintenez le clic, la jauge monte et redescend lentement. La distance dépend uniquement de la puissance.
 - **Lancer** : relâchez le clic.
 
 Le jeu marche aussi au doigt sur mobile.

@@ -93,7 +93,7 @@ const updateConfetti = (dt) => {
 // --- Jeu -------------------------------------------------------------------------
 const levels = new LevelManager(scene);
 const score = new ScoreKeeper();
-const thrower = new Thrower(scene, canvas);
+const thrower = new Thrower(scene, canvas, camera);
 
 const BEST_KEY = 'gym-express-best';
 const loadBest = () => {
@@ -158,7 +158,7 @@ const startLevel = () => {
   clearLeftovers();
   levels.load(lvl);
   score.startLevel(game.levelIndex, lvl.name);
-  thrower.configure({ trajectory: lvl.trajectory, gaugePeriod: game.levelIndex >= 5 ? 1.1 : 1.4 });
+  thrower.configure({ trajectory: lvl.trajectory, gaugePeriod: game.levelIndex >= 5 ? 2.2 : 2.6 });
   game.itemIndex = 0;
   game.results = [];
   hud.setLevel(game.levelIndex, LEVELS.length, lvl.name);

@@ -1,27 +1,49 @@
 // Visée à la souris + jauge de puissance (clic maintenu = la jauge fait des allers-retours).
 import * as THREE from 'three';
 import { box } from '../scene/voxel.js';
-import { predictPath } from './physics.js';
+import { AIR_DRAG, GRAVITY, predictPath } from './physics.js';
 
 export const HAND = new THREE.Vector3(0, 1.35, 0.4);
-const MAX_YAW = THREE.MathUtils.degToRad(38);
-const MIN_PITCH = THREE.MathUtils.degToRad(22);
-const MAX_PITCH = THREE.MathUtils.degToRad(68);
+const MAX_YAW = THREE.MathUtils.degToRad(50);
+const PITCH = THREE.MathUtils.degToRad(52); // angle de tir fixe : la distance se règle à la puissance
+const TARGET_HEIGHT = 0.9; // hauteur visée (rebord des bacs)
 const MIN_SPEED = 3.5;
 const MAX_SPEED = 14.5;
 const DOTS = 40;
 
 export class Thrower {
-  constructor(scene, canvas) {
+  constructor(scene, canvas, camera) {
     this.canvas = canvas;
+    this.camera = camera;
     this.yaw = 0;
-    this.pitch = THREE.MathUtils.degToRad(45);
+    this.pitch = PITCH;
     this.power = 0;
+    this.guidePower = 0.5; // puissance qui ferait arriver l'objet sur le curseur
+    this.target = new THREE.Vector3(0, TARGET_HEIGHT, -6);
     this.charging = false;
     this.chargeTime = 0;
     this.enabled = false;
-    this.gaugePeriod = 1.4;
+    this.gaugePeriod = 2.6;
     this.onRelease = null;
+    this.raycaster = new THREE.Raycaster();
+    // Plan horizontal à hauteur des rebords : pointer un bac vise bien son ouverture
+    this.aimPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -TARGET_HEIGHT);
+
+    // Repère carré sous le curseur, à hauteur des rebords
+    const markerMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 });
+    this.marker = new THREE.Group();
+    [
+      [0.7, 0.08, 0, -0.31],
+      [0.7, 0.08, 0, 0.31],
+      [0.08, 0.7, -0.31, 0],
+      [0.08, 0.7, 0.31, 0],
+    ].forEach(([w, d, x, z]) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.03, d), markerMat);
+      m.position.set(x, 0, z);
+      this.marker.add(m);
+    });
+    this.marker.visible = false;
+    scene.add(this.marker);
 
     // Flèche de visée faite de petits cubes
     this.arrow = new THREE.Group();
@@ -65,13 +87,54 @@ export class Thrower {
     canvas.addEventListener('pointercancel', release);
   }
 
+  /** Vise le point (à hauteur des bacs) situé sous le curseur. */
   aimFromPointer(e) {
     const rect = this.canvas.getBoundingClientRect();
-    const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-    const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-    this.yaw = THREE.MathUtils.clamp(-nx * 1.25, -1, 1) * MAX_YAW;
-    const t = THREE.MathUtils.clamp((ny + 0.9) / 1.6, 0, 1); // haut de l'écran = tir en cloche
-    this.pitch = THREE.MathUtils.lerp(MAX_PITCH, MIN_PITCH, t);
+    const ndc = new THREE.Vector2(
+      ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      -((e.clientY - rect.top) / rect.height) * 2 + 1,
+    );
+    this.raycaster.setFromCamera(ndc, this.camera);
+    const hit = new THREE.Vector3();
+    if (!this.raycaster.ray.intersectPlane(this.aimPlane, hit)) {
+      // Curseur au-dessus de l'horizon : on prend un point lointain dans la même direction
+      hit.copy(this.raycaster.ray.direction).setY(0).normalize().multiplyScalar(16).add(this.camera.position);
+    }
+    const dx = hit.x - HAND.x;
+    const dz = hit.z - HAND.z;
+    this.yaw = THREE.MathUtils.clamp(Math.atan2(-dx, -dz), -MAX_YAW, MAX_YAW);
+    const dist = THREE.MathUtils.clamp(Math.hypot(dx, dz), 2, 16);
+    this.target.set(HAND.x - Math.sin(this.yaw) * dist, TARGET_HEIGHT, HAND.z - Math.cos(this.yaw) * dist);
+    this.guidePower = this.powerForDistance(dist);
+  }
+
+  /** Distance horizontale parcourue avant de redescendre à la hauteur des bacs. */
+  static reach(speed) {
+    let x = 0;
+    let y = HAND.y;
+    let vx = Math.cos(PITCH) * speed;
+    let vy = Math.sin(PITCH) * speed;
+    const h = 1 / 120;
+    for (let i = 0; i < 600; i++) {
+      vy -= GRAVITY * h;
+      vx *= 1 - AIR_DRAG * h;
+      vy *= 1 - AIR_DRAG * h;
+      x += vx * h;
+      y += vy * h;
+      if (vy < 0 && y <= TARGET_HEIGHT) break;
+    }
+    return x;
+  }
+
+  powerForDistance(dist) {
+    let lo = 0;
+    let hi = 1;
+    for (let i = 0; i < 14; i++) {
+      const mid = (lo + hi) / 2;
+      if (Thrower.reach(MIN_SPEED + mid * (MAX_SPEED - MIN_SPEED)) < dist) lo = mid;
+      else hi = mid;
+    }
+    return (lo + hi) / 2;
   }
 
   configure({ trajectory, gaugePeriod }) {
@@ -82,6 +145,7 @@ export class Thrower {
   setEnabled(on) {
     this.enabled = on;
     this.arrow.visible = on;
+    this.marker.visible = on;
     if (!on) {
       this.charging = false;
       this.power = 0;
@@ -120,9 +184,12 @@ export class Thrower {
     this.arrowMaterial.color.copy(this.charging ? color : new THREE.Color(0xffffff));
     this.arrow.scale.setScalar(1 + this.power * 0.4);
 
-    // Trajectoire affichée pour la puissance « moyenne » (ou actuelle si on charge)
+    this.marker.position.copy(this.target);
+    this.marker.rotation.y = this.yaw;
+
+    // Trajectoire : vers le curseur au repos, puissance actuelle pendant la charge
     if (this.dotCount > 0) {
-      const v = this.velocity(this.charging ? this.power : 0.5);
+      const v = this.velocity(this.charging ? this.power : this.guidePower);
       const pts = predictPath(HAND, v, this.dotCount);
       const m = new THREE.Matrix4();
       pts.forEach((pt, i) => {
