@@ -75,6 +75,17 @@ export const hud = {
     setTimeout(() => el.remove(), 1600);
   },
 
+  /** Bulle de l'entraîneur qui accompagne les encouragements parlés. */
+  coach(text) {
+    const el = $('coach');
+    $('coach-text').textContent = text;
+    el.classList.remove('hidden', 'show');
+    void el.offsetWidth;
+    el.classList.add('show');
+    clearTimeout(this._coachTimer);
+    this._coachTimer = setTimeout(() => el.classList.add('hidden'), 1900);
+  },
+
   banner(title, subtitle, duration = 1400) {
     const el = $('banner');
     el.innerHTML = `<span>${title}</span><small>${subtitle}</small>`;

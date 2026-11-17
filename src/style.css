@@ -266,6 +266,37 @@ body {
   cursor: pointer;
 }
 
+.mute.music {
+  left: 74px;
+}
+.mute.music.off {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.coach {
+  position: absolute;
+  left: 16px;
+  bottom: 84px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(320px, calc(100% - 120px));
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 16px 16px 16px 4px;
+  box-shadow: 0 4px 0 var(--shadow);
+  padding: 8px 14px;
+  font-family: 'Lilita One', sans-serif;
+  font-size: 20px;
+}
+.coach.show {
+  animation: pop 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.coach-icon {
+  font-size: 24px;
+}
+
 /* --- Popups & bannière -------------------------------------------------- */
 #popups {
   position: absolute;

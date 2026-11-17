@@ -30,6 +30,18 @@ Le jeu marche aussi au doigt sur mobile.
 - La difficulté monte au fil des niveaux : bacs plus loin, trajectoire raccourcie puis masquée, obstacles (plinth, tapis, haie), bacs sur roulettes, entraîneur qui traverse le gymnase.
 - À la fin, un tableau donne le score de chaque niveau et le score total, qui est leur somme. Le meilleur score est enregistré dans le navigateur.
 
+## Sons
+
+Tout est généré en direct par le navigateur, il n'y a aucun fichier audio :
+
+- une musique de fond chiptune dont le tempo accélère avec les niveaux ;
+- l'ambiance du gymnase : murmure de la foule, ballons qui rebondissent au loin, crissements de baskets ;
+- des applaudissements et des cris de joie quand l'objet est bien rangé (plus forts pour un swish ou une série), et un « ooooh » déçu en cas d'erreur ;
+- un coup de sifflet au début de chaque niveau, une fanfare à la fin de la partie ;
+- les encouragements de l'entraîneur, prononcés en français par la synthèse vocale du navigateur et affichés dans une bulle.
+
+En jeu, 🔊 coupe tout le son (voix comprise) et 🎵 coupe seulement la musique. Ces réglages sont gardés d'une partie à l'autre. La voix dépend de l'appareil et du navigateur.
+
 ## Code
 
 | Fichier | Rôle |
@@ -39,5 +51,6 @@ Le jeu marche aussi au doigt sur mobile.
 | `src/scene/` | les modèles cubiques (gymnase, bacs, objets) |
 | `src/game/` | la physique (dont l'aide à la visée), la visée, le score et les niveaux |
 | `src/ui/` | le HUD et les écrans |
+| `src/audio/` | la musique, l'ambiance, la foule et la voix |
 
 Pour ajouter un niveau, ajoutez une entrée à `LEVELS` dans `src/config/levels.js`.

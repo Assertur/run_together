@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import './style.css';
 import { ITEMS_PER_LEVEL, LEVELS } from './config/levels.js';
-import { sfx } from './audio.js';
+import { audio } from './audio/index.js';
 import { LevelManager } from './game/levelManager.js';
 import { applyAssist, stepBody } from './game/physics.js';
 import { ScoreKeeper, comboMultiplier } from './game/scoring.js';
@@ -142,7 +142,7 @@ const clearLeftovers = () => {
 };
 
 const startGame = () => {
-  sfx.unlock();
+  audio.onStart();
   score.reset();
   game.levelIndex = 0;
   game.elapsed = 0;
@@ -166,7 +166,7 @@ const startLevel = () => {
   hud.setTimer(lvl.throwTime, lvl.throwTime);
   hud.setItem(null);
   hud.banner(`Niveau ${game.levelIndex + 1}`, `${lvl.name} · ${lvl.throwTime} s par lancer`);
-  sfx.level();
+  audio.onLevelStart(game.levelIndex);
   game.state = 'intro';
   game.timer = 1.5;
 };
@@ -209,7 +209,7 @@ const launchBody = (velocity, dropped = false) => {
 
 thrower.onRelease = (velocity) => {
   if (game.state !== 'aiming') return;
-  sfx.throw();
+  audio.onThrow();
   launchBody(velocity);
 };
 
@@ -223,19 +223,20 @@ const resolveThrow = (kind, bin = null) => {
     hud.popup(`+${r.points}`, 'good', screen.x, screen.y, sub);
     spawnConfetti(bin.position.clone().setY(bin.top + 0.2), bin.info.color);
     bin.shake = 1;
-    sfx.success();
+    audio.onHit({ swish: r.swish, streak: r.streak });
     game.results.push('hit');
   } else if (kind === 'wrong') {
     const r = score.wrong();
     hud.popup(`${r.points}`, 'bad', screen.x, screen.y, `Mauvais bac ! ${game.item.name} → ${binName(game.item.bin)}`);
     bin.shake = 0.6;
-    sfx.wrong();
+    audio.onWrong();
     game.results.push('wrong');
   } else {
     const r = score.miss();
     const label = kind === 'timeout' ? 'Trop lent !' : 'Raté !';
     hud.popup(`${r.points}`, 'meh', screen.x, screen.y, `${label} (${binName(game.item.bin)})`);
-    sfx.miss();
+    if (kind === 'timeout') audio.onTimeout();
+    else audio.onMiss();
     game.results.push('miss');
   }
   if (game.model && kind !== 'hit' && kind !== 'wrong') game.leftovers.push(game.model);
@@ -251,6 +252,7 @@ const endLevel = () => {
   const next = LEVELS[game.levelIndex + 1];
   const duration = 2.6;
   screens.recap(game.levelIndex, LEVELS.length, stats, next?.name, duration);
+  audio.onLevelEnd();
   game.state = 'recap';
   game.timer = duration;
 };
@@ -263,6 +265,7 @@ const endGame = () => {
   const prev = loadBest();
   const isRecord = prev == null || total > prev;
   if (isRecord) saveBest(total);
+  audio.onGameEnd(isRecord && prev != null);
   screens.end({
     levels: score.levels,
     total,
@@ -347,7 +350,7 @@ const tick = () => {
       game.model.position.set(HAND.x, HAND.y + Math.sin(time * 4) * 0.04, HAND.z);
       game.model.rotation.y += dt * 1.2;
       const sec = Math.ceil(game.throwTimeLeft);
-      if (sec < game.lastTick && sec <= 3 && sec > 0) sfx.tick();
+      if (sec < game.lastTick && sec <= 3 && sec > 0) audio.onTick();
       game.lastTick = sec;
       if (game.throwTimeLeft <= 0) {
         if (thrower.charging) thrower.release();
@@ -398,10 +401,22 @@ const tick = () => {
 // --- Boutons -------------------------------------------------------------------------
 document.getElementById('play').addEventListener('click', startGame);
 document.getElementById('replay').addEventListener('click', startGame);
-document.getElementById('mute').addEventListener('click', (e) => {
-  sfx.toggleMute();
-  e.currentTarget.textContent = sfx.muted ? '🔇' : '🔊';
+const muteButton = document.getElementById('mute');
+const musicButton = document.getElementById('music');
+const refreshSoundButtons = () => {
+  muteButton.textContent = audio.muted ? '🔇' : '🔊';
+  musicButton.classList.toggle('off', !audio.musicOn);
+};
+muteButton.addEventListener('click', () => {
+  audio.toggleMute();
+  refreshSoundButtons();
 });
+musicButton.addEventListener('click', () => {
+  audio.toggleMusic();
+  refreshSoundButtons();
+});
+refreshSoundButtons();
+audio.setSpeakListener((text) => hud.coach(text));
 document.getElementById('screen-recap').addEventListener('click', () => {
   if (game.state === 'recap') game.timer = 0;
 });
