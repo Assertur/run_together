@@ -3,11 +3,11 @@ import './style.css';
 import { ITEMS_PER_LEVEL, LEVELS } from './config/levels.js';
 import { sfx } from './audio.js';
 import { LevelManager } from './game/levelManager.js';
-import { stepBody } from './game/physics.js';
+import { applyAssist, stepBody } from './game/physics.js';
 import { ScoreKeeper, comboMultiplier } from './game/scoring.js';
 import { HAND, Thrower } from './game/thrower.js';
 import { buildItemModel, ITEM_RADIUS } from './scene/itemModels.js';
-import { ROOM, buildOffice } from './scene/office.js';
+import { ROOM, buildGym } from './scene/gym.js';
 import { binName, hud } from './ui/hud.js';
 import { screens } from './ui/screens.js';
 
@@ -20,8 +20,8 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xbfe6ff);
-scene.fog = new THREE.Fog(0xbfe6ff, 22, 40);
+scene.background = new THREE.Color(0xcfe3f5);
+scene.fog = new THREE.Fog(0xcfe3f5, 24, 42);
 
 const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 100);
 const CAMERA_POS = new THREE.Vector3(0, 3.1, 3.7);
@@ -41,15 +41,15 @@ sun.shadow.bias = -0.0005;
 sun.shadow.normalBias = 0.02;
 scene.add(sun, sun.target);
 
-const office = buildOffice();
-scene.add(office.root);
+const gym = buildGym();
+scene.add(gym.root);
 
 const resize = () => {
   const w = window.innerWidth;
   const h = window.innerHeight;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
-  // Sur écran étroit (portrait), on recule pour garder toutes les poubelles visibles
+  // Sur écran étroit (portrait), on élargit le champ pour garder tous les bacs visibles
   camera.fov = w / h < 1 ? 72 : 55;
   camera.updateProjectionMatrix();
 };
@@ -95,7 +95,7 @@ const levels = new LevelManager(scene);
 const score = new ScoreKeeper();
 const thrower = new Thrower(scene, canvas);
 
-const BEST_KEY = 'tri-express-best';
+const BEST_KEY = 'gym-express-best';
 const loadBest = () => {
   try {
     const v = localStorage.getItem(BEST_KEY);
@@ -126,7 +126,6 @@ const game = {
   leftovers: [],
   lastTick: 0,
 };
-window.__triExpress = { game, score, levels, LEVELS, thrower };
 
 const level = () => LEVELS[game.levelIndex];
 
@@ -164,7 +163,6 @@ const startLevel = () => {
   game.results = [];
   hud.setLevel(game.levelIndex, LEVELS.length, lvl.name);
   hud.setThrows(ITEMS_PER_LEVEL, 0, game.results);
-  hud.setWind(levels.wind);
   hud.setTimer(lvl.throwTime, lvl.throwTime);
   hud.setItem(null);
   hud.banner(`Niveau ${game.levelIndex + 1}`, `${lvl.name} · ${lvl.throwTime} s par lancer`);
@@ -186,7 +184,6 @@ const nextItem = () => {
   game.throwTimeLeft = level().throwTime;
   game.lastTick = Math.ceil(game.throwTimeLeft);
   hud.setItem(game.item);
-  hud.setWind(levels.nextThrowWind());
   hud.setThrows(ITEMS_PER_LEVEL, game.itemIndex, game.results);
   thrower.setEnabled(true);
   game.state = 'aiming';
@@ -217,7 +214,7 @@ const resolveThrow = (kind, bin = null) => {
   if (kind === 'hit') {
     const distance = Math.hypot(bin.position.x - HAND.x, bin.position.z - HAND.z);
     const r = score.correct({ distance, swish: !game.body.touchedRim });
-    const sub = [r.swish ? 'Swish ! +25' : 'Bien trié !', r.mult > 1 ? `Combo ×${r.mult}` : ''].filter(Boolean).join(' · ');
+    const sub = [r.swish ? 'Swish ! +25' : 'Bien rangé !', r.mult > 1 ? `Combo ×${r.mult}` : ''].filter(Boolean).join(' · ');
     hud.popup(`+${r.points}`, 'good', screen.x, screen.y, sub);
     spawnConfetti(bin.position.clone().setY(bin.top + 0.2), bin.info.color);
     bin.shake = 1;
@@ -225,7 +222,7 @@ const resolveThrow = (kind, bin = null) => {
     game.results.push('hit');
   } else if (kind === 'wrong') {
     const r = score.wrong();
-    hud.popup(`${r.points}`, 'bad', screen.x, screen.y, `Mauvaise poubelle ! ${game.item.name} → ${binName(game.item.bin)}`);
+    hud.popup(`${r.points}`, 'bad', screen.x, screen.y, `Mauvais bac ! ${game.item.name} → ${binName(game.item.bin)}`);
     bin.shake = 0.6;
     sfx.wrong();
     game.results.push('wrong');
@@ -273,8 +270,9 @@ const endGame = () => {
   });
 };
 
-// Détection : l'objet est-il passé sous le rebord, à l'intérieur d'une poubelle ?
-const checkBins = (body) => {
+// Aide à la visée puis détection : l'objet est-il passé sous le rebord, dans un bac ?
+const checkBins = (body, h) => {
+  applyAssist(body, levels.bins, h);
   for (const bin of levels.bins) {
     if (body.pos.y < bin.top - 0.12 && body.pos.y > bin.lift && bin.containsXZ(body.pos, ITEM_RADIUS * 0.2)) {
       body.inBin = bin;
@@ -287,8 +285,8 @@ const checkBins = (body) => {
 const updateFlight = (dt) => {
   const body = game.body;
   body.flightTime += dt;
-  const colliders = [...office.colliders, ...levels.allColliders()];
-  const entered = stepBody(body, dt, colliders, levels.wind, checkBins);
+  const colliders = [...gym.colliders, ...levels.allColliders()];
+  const entered = stepBody(body, dt, colliders, checkBins);
 
   game.model.position.copy(body.pos);
   game.model.rotation.x += body.spin.x * dt;
@@ -298,7 +296,7 @@ const updateFlight = (dt) => {
 
   if (entered) {
     const bin = body.inBin;
-    // L'objet reste dans la poubelle (et la suit si elle bouge)
+    // L'objet reste dans le bac (et le suit s'il bouge)
     bin.group.attach(game.model);
     game.model.position.set(
       THREE.MathUtils.clamp(game.model.position.x, -0.25, 0.25),
@@ -310,10 +308,10 @@ const updateFlight = (dt) => {
   }
 
   const speed = body.vel.length();
-  body.restTime = body.pos.y < 0.6 && speed < 0.6 ? body.restTime + dt : 0;
+  body.restTime = body.pos.y < 0.6 && speed < 0.8 ? body.restTime + dt : 0;
   const outside =
     body.pos.y < -1 || body.pos.x < ROOM.minX - 1 || body.pos.x > ROOM.maxX + 1 || body.pos.z < ROOM.minZ - 1 || body.pos.z > 5;
-  if (body.restTime > 0.35 || body.flightTime > 5 || outside) resolveThrow('miss');
+  if (body.restTime > 0.25 || body.flightTime > 4.5 || outside) resolveThrow('miss');
 };
 
 // --- Boucle principale ------------------------------------------------------------
@@ -339,7 +337,7 @@ const tick = () => {
     case 'aiming': {
       game.throwTimeLeft -= dt;
       hud.setTimer(game.throwTimeLeft, level().throwTime);
-      thrower.update(dt, levels.wind);
+      thrower.update(dt);
       hud.setPower(thrower.power);
       // L'objet tenu flotte devant le joueur
       game.model.position.set(HAND.x, HAND.y + Math.sin(time * 4) * 0.04, HAND.z);
@@ -404,7 +402,7 @@ document.getElementById('screen-recap').addEventListener('click', () => {
   if (game.state === 'recap') game.timer = 0;
 });
 
-// Aperçu : poubelles du niveau 1 visibles derrière l'écran titre
+// Aperçu : bacs du niveau 1 visibles derrière l'écran titre
 levels.load(LEVELS[0]);
 screens.title(loadBest());
 tick();

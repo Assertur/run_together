@@ -7,7 +7,7 @@
   --bad: #e5484d;
   --meh: #f59e0b;
   --accent: #ff7a59;
-  --sky: #bfe6ff;
+  --sky: #cfe3f5;
   color-scheme: light;
 }
 
@@ -366,14 +366,14 @@ body {
   font-family: 'Lilita One', sans-serif;
   font-size: clamp(44px, 9vw, 72px);
   line-height: 1;
-  color: #f7c843;
+  color: #f2802f;
   -webkit-text-stroke: 3px var(--ink);
   paint-order: stroke fill;
   text-shadow: 0 6px 0 var(--ink);
   letter-spacing: 0.02em;
 }
 .logo span {
-  color: #3fbf6f;
+  color: #3d8bfd;
 }
 .tagline {
   font-weight: 800;

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Tri Express</title>
+    <title>Gym Express</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap" rel="stylesheet" />
@@ -21,9 +21,9 @@
             <span class="sub" id="level-name"></span>
           </div>
           <div class="panel item-card" id="item-card">
-            <span class="item-icon" id="item-icon">🥫</span>
+            <span class="item-icon" id="item-icon">🏀</span>
             <div>
-              <span class="label">À trier</span>
+              <span class="label">À ranger</span>
               <span class="item-name" id="item-name">—</span>
             </div>
           </div>
@@ -36,7 +36,6 @@
 
         <div class="hud-side">
           <div class="panel mini" id="clock"><span class="label">Temps</span><span class="value" id="elapsed">0:00</span></div>
-          <div class="panel mini" id="wind"><span class="label">Vent</span><span class="value" id="wind-value">—</span></div>
         </div>
 
         <div class="throw-row">
@@ -59,20 +58,21 @@
       <!-- Écran titre -->
       <div class="screen" id="screen-title">
         <div class="card">
-          <h1 class="logo">TRI <span>EXPRESS</span></h1>
-          <p class="tagline">Lancez les déchets du bureau dans la bonne poubelle !</p>
+          <h1 class="logo">GYM <span>EXPRESS</span></h1>
+          <p class="tagline">Fin du cours de sport : rangez chaque ballon dans le bac de son sport !</p>
           <div class="legend" id="legend"></div>
           <ul class="rules">
             <li><b>Viser</b> : déplacez la souris (haut de l'écran = tir en cloche)</li>
             <li><b>Puissance</b> : maintenez le clic, la jauge monte et descend</li>
             <li><b>Lancer</b> : relâchez au bon moment !</li>
+            <li>Une balle qui passe près d'un bac est un peu attirée dedans</li>
             <li>7 niveaux · 5 objets chacun · le chrono passe de 8 s à 3 s par lancer</li>
           </ul>
           <div class="scoring">
-            <span class="chip good">Bonne poubelle +100</span>
+            <span class="chip good">Bon bac +100</span>
             <span class="chip good">Bonus distance & swish</span>
             <span class="chip good">Combo jusqu'à ×3</span>
-            <span class="chip bad">Mauvaise poubelle −50</span>
+            <span class="chip bad">Mauvais bac −50</span>
             <span class="chip bad">Raté −20</span>
           </div>
           <button class="btn" id="play">Jouer ▶</button>
@@ -85,7 +85,7 @@
         <div class="card small">
           <h2 id="recap-title">Niveau 1 terminé</h2>
           <div class="recap-stats">
-            <div><span class="big good" id="recap-hits">0</span><span>bons tris</span></div>
+            <div><span class="big good" id="recap-hits">0</span><span>bien rangés</span></div>
             <div><span class="big bad" id="recap-wrong">0</span><span>erreurs</span></div>
             <div><span class="big meh" id="recap-miss">0</span><span>ratés</span></div>
           </div>
@@ -98,7 +98,7 @@
       <!-- Fin de partie -->
       <div class="screen hidden" id="screen-end">
         <div class="card">
-          <h2>Journée terminée !</h2>
+          <h2>Gymnase rangé !</h2>
           <table class="scores">
             <thead>
               <tr><th>Niveau</th><th>✅</th><th>❌</th><th>💨</th><th>Points</th></tr>
@@ -109,7 +109,7 @@
             </tfoot>
           </table>
           <div class="end-extra">
-            <span class="chip">🎯 Précision : <b id="end-accuracy">0 %</b></span>
+            <span class="chip">🎯 Adresse : <b id="end-accuracy">0 %</b></span>
             <span class="chip">🔥 Meilleur combo : <b id="end-combo">0</b></span>
             <span class="chip">⏱️ Temps : <b id="end-time">0:00</b></span>
           </div>

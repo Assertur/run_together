@@ -1,45 +1,43 @@
-// Catégories de tri : chaque poubelle a une couleur, un nom et une icône.
+// Bacs de rangement du gymnase : un bac par sport.
 export const BIN_TYPES = {
-  yellow: {
-    id: 'yellow',
-    label: 'Emballages',
-    hint: 'plastique, métal, briques',
-    color: 0xf7c843,
-    rim: 0xffe08a,
-    icon: '♻️',
+  basket: {
+    id: 'basket',
+    label: 'Basket',
+    hint: 'ballons de basket',
+    color: 0xf2802f,
+    rim: 0xffb27a,
+    icon: '🏀',
   },
-  blue: {
-    id: 'blue',
-    label: 'Papier',
-    hint: 'papier, carton',
-    color: 0x3d8bfd,
-    rim: 0x8dbdff,
-    icon: '📄',
-  },
-  green: {
-    id: 'green',
-    label: 'Verre',
-    hint: 'bouteilles, bocaux',
+  foot: {
+    id: 'foot',
+    label: 'Foot',
+    hint: 'ballons, plots',
     color: 0x3fbf6f,
     rim: 0x8fe3ad,
-    icon: '🍾',
+    icon: '⚽',
   },
-  brown: {
-    id: 'brown',
-    label: 'Compost',
-    hint: 'restes alimentaires',
-    color: 0x9a6a3e,
-    rim: 0xc89a6e,
-    icon: '🍂',
+  tennis: {
+    id: 'tennis',
+    label: 'Tennis',
+    hint: 'balles, raquettes',
+    color: 0xe8c81e,
+    rim: 0xfff07a,
+    icon: '🎾',
   },
-  gray: {
-    id: 'gray',
-    label: 'Ordures',
-    hint: 'non recyclable',
-    color: 0x6f7682,
-    rim: 0xa6adb8,
-    icon: '🗑️',
+  volley: {
+    id: 'volley',
+    label: 'Volley',
+    hint: 'ballons de volley, plage',
+    color: 0x3d8bfd,
+    rim: 0x8dbdff,
+    icon: '🏐',
+  },
+  rugby: {
+    id: 'rugby',
+    label: 'Rugby',
+    hint: 'ballons, tees',
+    color: 0xd64045,
+    rim: 0xff8a8d,
+    icon: '🏉',
   },
 };
-
-export const binLabel = (id) => `${BIN_TYPES[id].label}`;

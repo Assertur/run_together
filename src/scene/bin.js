@@ -1,4 +1,4 @@
-// Poubelle de tri cubique : 4 parois colorées, rebord clair, panneau flottant.
+// Bac de rangement du gymnase : caisse colorée à lattes, rebord clair, panneau flottant.
 import * as THREE from 'three';
 import { BIN_TYPES } from '../config/bins.js';
 import { box, cylinder, group, labelTexture, roundRect } from './voxel.js';
@@ -70,8 +70,13 @@ export class Bin {
       box(o * 2 + 0.04, 0.07, 0.12, this.info.rim, { y: this.lift + h, z: -o + 0.05 }),
       box(0.12, 0.07, o * 2 - 0.1, this.info.rim, { y: this.lift + h, x: o - 0.05 }),
       box(0.12, 0.07, o * 2 - 0.1, this.info.rim, { y: this.lift + h, x: -o + 0.05 }),
-      // bande blanche sur la face avant
-      box(o * 1.2, 0.18, 0.02, 0xffffff, { y: this.lift + h * 0.55, z: o + 0.005, shadow: false }),
+      // lattes verticales plus sombres sur les faces avant et arrière
+      ...[-0.6, 0, 0.6].flatMap((f) => [
+        box(0.07, h * 0.8, 0.02, 0x000000, { x: f * o, y, z: o + 0.006, opacity: 0.18, shadow: false }),
+        box(0.07, h * 0.8, 0.02, 0x000000, { x: f * o, y, z: -o - 0.006, opacity: 0.18, shadow: false }),
+      ]),
+      // plaque blanche sur la face avant
+      box(o * 0.9, 0.22, 0.02, 0xffffff, { y: this.lift + h * 0.55, z: o + 0.012, shadow: false }),
     );
 
     const sign = new THREE.Sprite(new THREE.SpriteMaterial({ map: signTexture(this.info), depthWrite: false }));
@@ -131,7 +136,7 @@ export class Bin {
     });
   }
 
-  /** L'objet est-il dans l'ouverture intérieure de la poubelle ? */
+  /** L'objet est-il dans l'ouverture intérieure du bac ? */
   containsXZ(pos, margin = 0) {
     const inner = BIN_HALF - WALL - margin;
     return Math.abs(pos.x - this.group.position.x) < inner && Math.abs(pos.z - this.group.position.z) < inner;

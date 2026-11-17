@@ -1,4 +1,4 @@
-// Système de points : réussite, mauvaise poubelle, raté, combo. Un score par niveau.
+// Système de points : réussite, mauvais bac, raté, combo. Un score par niveau.
 export const POINTS = {
   correct: 100,
   maxDistanceBonus: 50,
@@ -28,7 +28,7 @@ export class ScoreKeeper {
     this.current = this.levels[index];
   }
 
-  /** Bonne poubelle. Renvoie le détail des points gagnés. */
+  /** Bon bac. Renvoie le détail des points gagnés. */
   correct({ distance, swish }) {
     this.streak += 1;
     this.bestCombo = Math.max(this.bestCombo, this.streak);

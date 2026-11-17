@@ -59,17 +59,6 @@ export const hud = {
     $('elapsed').textContent = formatTime(seconds);
   },
 
-  setWind(wind) {
-    const el = $('wind-value');
-    if (Math.abs(wind) < 0.05) {
-      el.textContent = 'Aucun';
-      return;
-    }
-    const arrows = Math.abs(wind) > 0.95 ? 3 : Math.abs(wind) > 0.55 ? 2 : 1;
-    const arrow = (wind > 0 ? '→' : '←').repeat(arrows);
-    el.textContent = `${arrow} ${Math.abs(wind).toFixed(1)}`;
-  },
-
   setHint(text) {
     $('hint').textContent = text;
     $('hint').classList.toggle('hidden', !text);

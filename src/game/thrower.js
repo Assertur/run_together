@@ -104,7 +104,7 @@ export class Thrower {
     this.onRelease?.(v, p);
   }
 
-  update(dt, wind) {
+  update(dt) {
     if (!this.enabled) return;
     if (this.charging) {
       this.chargeTime += dt;
@@ -123,7 +123,7 @@ export class Thrower {
     // Trajectoire affichée pour la puissance « moyenne » (ou actuelle si on charge)
     if (this.dotCount > 0) {
       const v = this.velocity(this.charging ? this.power : 0.5);
-      const pts = predictPath(HAND, v, wind, this.dotCount);
+      const pts = predictPath(HAND, v, this.dotCount);
       const m = new THREE.Matrix4();
       pts.forEach((pt, i) => {
         m.makeTranslation(pt.x, pt.y, pt.z);

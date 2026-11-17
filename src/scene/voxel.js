@@ -53,13 +53,21 @@ export const cylinder = (radiusTop, radiusBottom, h, color, opts = {}) => {
   return place(new THREE.Mesh(geometries.get(key), material(color, opts)), opts);
 };
 
+/** Sphère low-poly (icosaèdre) pour les ballons. */
+export const sphere = (radius, color, opts = {}) => {
+  const detail = opts.detail ?? 1;
+  const key = `ico|${radius}|${detail}`;
+  if (!geometries.has(key)) geometries.set(key, new THREE.IcosahedronGeometry(radius, detail));
+  return place(new THREE.Mesh(geometries.get(key), material(color, opts)), opts);
+};
+
 export const group = (...children) => {
   const g = new THREE.Group();
   children.forEach((c) => g.add(c));
   return g;
 };
 
-/** Texture canvas pour les panneaux (étiquettes de poubelle, affiches…). */
+/** Texture canvas pour les panneaux (étiquettes des bacs, affiches…). */
 export const labelTexture = (draw, width = 256, height = 128) => {
   const canvas = document.createElement('canvas');
   canvas.width = width;

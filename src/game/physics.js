@@ -1,5 +1,6 @@
 // Physique maison très simple : une sphère (l'objet lancé) contre des boîtes alignées (AABB).
 import * as THREE from 'three';
+import { BIN_HALF } from '../scene/bin.js';
 
 export const GRAVITY = 9.8;
 export const AIR_DRAG = 0.08;
@@ -44,39 +45,63 @@ export const resolveSphereBox = (body, box) => {
   p.copy(closest).addScaledVector(normal, r + 1e-4);
   const vn = body.vel.dot(normal);
   if (vn < 0) {
-    body.vel.addScaledVector(normal, -(1 + body.bounce) * vn);
-    // frottement tangentiel
+    // Les parois des bacs amortissent davantage : la balle ressort moins.
+    const bounce = box.bin ? body.bounce * 0.5 : body.bounce;
+    body.vel.addScaledVector(normal, -(1 + bounce) * vn);
+    // frottement tangentiel (plus fort au sol pour que la balle s'arrête vite)
     const tangential = body.vel.clone().addScaledVector(normal, -body.vel.dot(normal));
-    body.vel.addScaledVector(tangential, -0.18);
+    body.vel.addScaledVector(tangential, normal.y > 0.7 ? -0.35 : -0.18);
   }
   if (normal.y > 0.7) body.grounded = true;
   return true;
 };
 
+const ASSIST_RANGE = BIN_HALF + 0.45; // rayon horizontal de l'aimant autour d'un bac
+const ASSIST_HEIGHT = 1.8; // hauteur au-dessus du rebord où l'aimant agit
+const ASSIST_STRENGTH = 7; // m/s²
+
 /**
- * Avance la simulation de `dt` secondes. `onSubstep(body)` est appelé après chaque sous-pas
- * (pour la détection d'entrée dans les poubelles) et peut renvoyer true pour arrêter.
+ * Aide à la visée : une balle qui redescend près d'un bac est attirée vers son centre.
  */
-export const stepBody = (body, dt, colliders, wind, onSubstep) => {
+export const applyAssist = (body, bins, h) => {
+  if (body.vel.y >= 0) return;
+  for (const bin of bins) {
+    const above = body.pos.y - bin.top;
+    if (above < -0.05 || above > ASSIST_HEIGHT) continue;
+    const dx = bin.position.x - body.pos.x;
+    const dz = bin.position.z - body.pos.z;
+    const dist = Math.hypot(dx, dz);
+    if (dist > ASSIST_RANGE || dist < 1e-3) continue;
+    const strength = ASSIST_STRENGTH * (1 - (dist / ASSIST_RANGE) * 0.5);
+    body.vel.x += (dx / dist) * strength * h;
+    body.vel.z += (dz / dist) * strength * h;
+    return;
+  }
+};
+
+/**
+ * Avance la simulation de `dt` secondes. `onSubstep(body, h)` est appelé après chaque sous-pas
+ * (aide à la visée, détection d'entrée dans les bacs) et peut renvoyer true pour arrêter.
+ */
+export const stepBody = (body, dt, colliders, onSubstep) => {
   let remaining = dt;
   while (remaining > 1e-6) {
     const h = Math.min(SUBSTEP, remaining);
     remaining -= h;
     body.grounded = false;
     body.vel.y -= GRAVITY * h;
-    body.vel.x += wind * h;
     body.vel.multiplyScalar(1 - AIR_DRAG * h);
     body.pos.addScaledVector(body.vel, h);
     for (const c of colliders) {
       if (resolveSphereBox(body, c) && c.bin) body.touchedRim = true;
     }
-    if (onSubstep && onSubstep(body)) return true;
+    if (onSubstep && onSubstep(body, h)) return true;
   }
   return false;
 };
 
 /** Trajectoire prédite (sans collisions) pour l'aide à la visée. */
-export const predictPath = (origin, velocity, wind, count, dt = 0.045) => {
+export const predictPath = (origin, velocity, count, dt = 0.045) => {
   const pts = [];
   const p = origin.clone();
   const v = velocity.clone();
@@ -84,7 +109,6 @@ export const predictPath = (origin, velocity, wind, count, dt = 0.045) => {
     for (let k = 0; k < 4; k++) {
       const h = dt / 4;
       v.y -= GRAVITY * h;
-      v.x += wind * h;
       v.multiplyScalar(1 - AIR_DRAG * h);
       p.addScaledVector(v, h);
     }

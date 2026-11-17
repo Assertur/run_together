@@ -1,26 +1,19 @@
-// Catalogue des objets à lancer. `bin` = poubelle correcte, `shape` = constructeur voxel.
+// Objets de sport à ranger. `bin` = bac du sport, `shape` = modèle voxel, `bounce` = rebond.
 export const ITEMS = [
-  { id: 'can', name: 'Canette', icon: '🥫', bin: 'yellow', shape: 'can', bounce: 0.45 },
-  { id: 'plastic', name: 'Bouteille plastique', icon: '🧴', bin: 'yellow', shape: 'plasticBottle', bounce: 0.5 },
-  { id: 'yogurt', name: 'Pot de yaourt', icon: '🥛', bin: 'yellow', shape: 'yogurt', bounce: 0.4 },
-  { id: 'juice', name: 'Brique de jus', icon: '🧃', bin: 'yellow', shape: 'juice', bounce: 0.35 },
+  { id: 'basketball', name: 'Ballon de basket', icon: '🏀', bin: 'basket', shape: 'basketball', bounce: 0.35 },
+  { id: 'minibasket', name: 'Mini-ballon de basket', icon: '🏀', bin: 'basket', shape: 'miniBasketball', bounce: 0.35 },
 
-  { id: 'paperball', name: 'Boule de papier', icon: '📃', bin: 'blue', shape: 'paperBall', bounce: 0.3 },
-  { id: 'newspaper', name: 'Journal', icon: '📰', bin: 'blue', shape: 'newspaper', bounce: 0.2 },
-  { id: 'box', name: 'Petit carton', icon: '📦', bin: 'blue', shape: 'cardboard', bounce: 0.25 },
-  { id: 'envelope', name: 'Enveloppe', icon: '✉️', bin: 'blue', shape: 'envelope', bounce: 0.2 },
+  { id: 'football', name: 'Ballon de foot', icon: '⚽', bin: 'foot', shape: 'football', bounce: 0.3 },
+  { id: 'cone', name: 'Plot orange', icon: '🔶', bin: 'foot', shape: 'cone', bounce: 0.15 },
 
-  { id: 'glassbottle', name: 'Bouteille en verre', icon: '🍾', bin: 'green', shape: 'glassBottle', bounce: 0.35 },
-  { id: 'jar', name: 'Bocal de confiture', icon: '🫙', bin: 'green', shape: 'jar', bounce: 0.3 },
+  { id: 'tennisball', name: 'Balle de tennis', icon: '🎾', bin: 'tennis', shape: 'tennisBall', bounce: 0.3 },
+  { id: 'racket', name: 'Raquette de tennis', icon: '🏸', bin: 'tennis', shape: 'racket', bounce: 0.15 },
 
-  { id: 'apple', name: 'Trognon de pomme', icon: '🍎', bin: 'brown', shape: 'apple', bounce: 0.3 },
-  { id: 'banana', name: 'Peau de banane', icon: '🍌', bin: 'brown', shape: 'banana', bounce: 0.15 },
-  { id: 'teabag', name: 'Sachet de thé', icon: '🍵', bin: 'brown', shape: 'teabag', bounce: 0.1 },
+  { id: 'volleyball', name: 'Ballon de volley', icon: '🏐', bin: 'volley', shape: 'volleyball', bounce: 0.3 },
+  { id: 'beachball', name: 'Ballon de plage', icon: '🏐', bin: 'volley', shape: 'beachBall', bounce: 0.25 },
 
-  // Objets « pièges » : non recyclables → ordures ménagères (poubelle grise).
-  { id: 'tissue', name: 'Mouchoir usagé', icon: '🤧', bin: 'gray', shape: 'tissue', bounce: 0.15, tricky: true },
-  { id: 'dirtycup', name: 'Gobelet de café sale', icon: '☕', bin: 'gray', shape: 'coffeeCup', bounce: 0.3, tricky: true },
-  { id: 'pen', name: 'Stylo usagé', icon: '🖊️', bin: 'gray', shape: 'pen', bounce: 0.4, tricky: true },
+  { id: 'rugbyball', name: 'Ballon de rugby', icon: '🏉', bin: 'rugby', shape: 'rugbyBall', bounce: 0.2 },
+  { id: 'tee', name: 'Tee de rugby', icon: '🔺', bin: 'rugby', shape: 'tee', bounce: 0.15 },
 ];
 
 export const itemsForBins = (binIds) => ITEMS.filter((it) => binIds.includes(it.bin));
